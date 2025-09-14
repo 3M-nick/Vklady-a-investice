@@ -1,0 +1,27 @@
+name: Fetch Eurostat & Build CSV
+
+on:
+  workflow_dispatch:      # ruční spuštění v záložce Actions
+  schedule:
+    - cron: "0 6 * * 1"   # automaticky každé pondělí v 06:00 UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write     # aby se CSV commitly do repa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -U pip
+      - run: pip install -r requirements.txt
+      - run: python eurostat_households_shares_2025.py
+      - name: Commit CSV outputs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update CSV from Eurostat (auto)"
+          file_pattern: |
+            households_shares_2025Q_latest.csv
+            households_sources_2025Q_latest.csv
